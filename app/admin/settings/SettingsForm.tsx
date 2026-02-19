@@ -1,7 +1,8 @@
 'use client';
 
-import { useActionState } from 'react';
-import { updateHeroImage, updateAboutSettings } from '@/app/actions/settings';
+import { useActionState, useState } from 'react';
+import { updateHeroImage, updateAboutSettings, updateSettingsWithUrl } from '@/app/actions/settings';
+import { upload } from '@vercel/blob/client';
 
 const initialState = {
     message: '',
@@ -19,18 +20,86 @@ export function SettingsForm({
         image: string | null
     }
 }) {
-    const [heroState, heroAction, isHeroPending] = useActionState(async (prevState: any, formData: FormData) => {
-        const result = await updateHeroImage(formData);
-        return result;
-    }, initialState);
+    const [uploading, setUploading] = useState(false);
 
-    const [aboutState, aboutAction, isAboutPending] = useActionState(async (prevState: any, formData: FormData) => {
-        const result = await updateAboutSettings(formData);
-        return result;
-    }, initialState);
+    // We use a generic action handler for the text status
+    const [status, setStatus] = useState<{ message: string; success: boolean } | null>(null);
+
+    async function handleHeroSubmit(formData: FormData) {
+        setUploading(true);
+        setStatus(null);
+
+        try {
+            const file = formData.get('heroImage') as File;
+            let finalUrl = currentHeroImage;
+
+            if (file && file.size > 0) {
+                // Client-side upload
+                const newBlob = await upload(file.name, file, {
+                    access: 'public',
+                    handleUploadUrl: '/api/upload',
+                });
+                finalUrl = newBlob.url;
+            } else {
+                setUploading(false);
+                return; // Nothing to do if no file
+            }
+
+            // Call server action with URL
+            const result = await updateSettingsWithUrl('heroImage', finalUrl);
+            setStatus(result);
+        } catch (error) {
+            console.error(error);
+            setStatus({ message: 'Error al subir la imagen. Intenta con una más pequeña o verifica tu conexión.', success: false });
+        } finally {
+            setUploading(false);
+        }
+    }
+
+    async function handleAboutSubmit(formData: FormData) {
+        setUploading(true);
+        setStatus(null);
+
+        try {
+            const title = formData.get('aboutTitle') as string;
+            const description = formData.get('aboutDescription') as string;
+            const file = formData.get('aboutImage') as File;
+
+            let imageUrl = aboutSettings?.image;
+
+            if (file && file.size > 0) {
+                const newBlob = await upload(file.name, file, {
+                    access: 'public',
+                    handleUploadUrl: '/api/upload',
+                });
+                imageUrl = newBlob.url;
+            }
+
+            // We construct a simplified object to pass to server action
+            const result = await updateSettingsWithUrl('about', {
+                title,
+                description,
+                imageUrl
+            });
+            setStatus(result);
+
+        } catch (error) {
+            console.error(error);
+            setStatus({ message: 'Error al guardar los cambios.', success: false });
+        } finally {
+            setUploading(false);
+        }
+    }
 
     return (
         <div className="space-y-8">
+            {/* Status Message */}
+            {status && (
+                <div className={`fixed top-24 right-4 z-50 p-4 rounded-xl shadow-lg border ${status.success ? 'bg-green-50 border-green-100 text-green-800' : 'bg-red-50 border-red-100 text-red-800'} transition-all`}>
+                    {status.message}
+                </div>
+            )}
+
             {/* Hero Image Section */}
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
                 <h2 className="text-xl font-medium mb-6">Imagen de Portada (Hero)</h2>
@@ -46,7 +115,7 @@ export function SettingsForm({
                     </div>
                 </div>
 
-                <form action={heroAction} className="space-y-4">
+                <form action={handleHeroSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Subir Nueva Imagen
@@ -65,21 +134,20 @@ export function SettingsForm({
                         />
                     </div>
 
-                    {heroState?.message && (
-                        <div className={`p-3 rounded-lg text-sm ${heroState.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                            {heroState.message}
-                        </div>
-                    )}
-
                     <button
                         type="submit"
-                        disabled={isHeroPending}
-                        className="bg-brand-blue text-white px-6 py-2 rounded-lg hover:bg-[#3A5F95] transition-colors disabled:opacity-50"
+                        disabled={uploading}
+                        className="bg-brand-blue text-white px-6 py-2 rounded-lg hover:bg-[#3A5F95] transition-colors disabled:opacity-50 flex items-center gap-2"
                     >
-                        {isHeroPending ? 'Subiendo...' : 'Guardar Cambios'}
+                        {uploading ? (
+                            <>
+                                <span className="animate-spin">⏳</span> Subiendo...
+                            </>
+                        ) : 'Guardar Cambios'}
                     </button>
                     <p className="text-xs text-gray-400 mt-2">
                         * Se recomienda una imagen horizontal de alta calidad (min 1920x1080).
+                        Soporta archivos grandes ({'>'}5MB).
                     </p>
                 </form>
             </div>
@@ -88,7 +156,7 @@ export function SettingsForm({
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
                 <h2 className="text-xl font-medium mb-6">Página "Acerca de Mí"</h2>
 
-                <form action={aboutAction} className="space-y-6">
+                <form action={handleAboutSubmit} className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
                         <input
@@ -124,18 +192,16 @@ export function SettingsForm({
                         />
                     </div>
 
-                    {aboutState?.message && (
-                        <div className={`p-3 rounded-lg text-sm ${aboutState.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                            {aboutState.message}
-                        </div>
-                    )}
-
                     <button
                         type="submit"
-                        disabled={isAboutPending}
-                        className="bg-brand-blue text-white px-6 py-2 rounded-lg hover:bg-[#3A5F95] transition-colors disabled:opacity-50"
+                        disabled={uploading}
+                        className="bg-brand-blue text-white px-6 py-2 rounded-lg hover:bg-[#3A5F95] transition-colors disabled:opacity-50 flex items-center gap-2"
                     >
-                        {isAboutPending ? 'Guardando...' : 'Guardar Información'}
+                        {uploading ? (
+                            <>
+                                <span className="animate-spin">⏳</span> Guardando...
+                            </>
+                        ) : 'Guardar Información'}
                     </button>
                 </form>
             </div>

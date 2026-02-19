@@ -106,3 +106,54 @@ export async function updateAboutSettings(formData: FormData) {
         return { message: 'Error updating about settings.' };
     }
 }
+
+export async function updateSettingsWithUrl(
+    type: 'heroImage' | 'about',
+    data: string | { title: string; description: string; imageUrl?: string | null }
+) {
+    try {
+        const existing = await prisma.globalSettings.findFirst();
+
+        if (type === 'heroImage' && typeof data === 'string') {
+            if (existing) {
+                await prisma.globalSettings.update({
+                    where: { id: existing.id },
+                    data: { heroImage: data },
+                });
+            } else {
+                await prisma.globalSettings.create({
+                    data: { heroImage: data },
+                });
+            }
+        }
+        else if (type === 'about' && typeof data === 'object') {
+            const { title, description, imageUrl } = data;
+
+            if (existing) {
+                await prisma.globalSettings.update({
+                    where: { id: existing.id },
+                    data: {
+                        aboutTitle: title,
+                        aboutDescription: description,
+                        ...(imageUrl !== undefined ? { aboutImage: imageUrl } : {}), // Update image only if provided
+                    },
+                });
+            } else {
+                await prisma.globalSettings.create({
+                    data: {
+                        aboutTitle: title,
+                        aboutDescription: description,
+                        aboutImage: imageUrl || null
+                    },
+                });
+            }
+            revalidatePath('/about');
+        }
+
+        revalidatePath('/');
+        return { success: true, message: 'Configuración actualizada correctamente.' };
+    } catch (error) {
+        console.error('Failed to update settings with url:', error);
+        return { success: false, message: 'Error al actualizar la base de datos.' };
+    }
+}
