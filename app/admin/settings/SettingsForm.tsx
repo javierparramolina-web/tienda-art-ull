@@ -1,5 +1,4 @@
-import { useActionState, useState } from 'react';
-import { updateHeroImage, updateAboutSettings, updateSettingsWithUrl } from '@/app/actions/settings';
+import { updateSettingsWithUrl } from '@/app/actions/settings';
 import { upload } from '@vercel/blob/client';
 import { compressImage } from '@/lib/client-image-compression';
 
