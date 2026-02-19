@@ -66,7 +66,7 @@ export async function createProduct(prevState: any, formData: FormData) {
 
     } catch (error) {
         console.error('Failed to create product:', error);
-        return { message: 'Database Error: Failed to Create Product.' };
+        return { message: 'Error: ' + (error instanceof Error ? error.message : 'Unknown error') };
     }
 
     revalidatePath('/');
@@ -135,7 +135,7 @@ export async function updateProduct(id: number, prevState: any, formData: FormDa
 
     } catch (error) {
         console.error('Failed to update product:', error);
-        return { message: 'Database Error: Failed to Update Product.' };
+        return { message: 'Error: ' + (error instanceof Error ? error.message : 'Unknown error') };
     }
 
     revalidatePath(`/product/${id}`);
