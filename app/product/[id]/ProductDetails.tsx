@@ -28,15 +28,31 @@ const FORMAT_DETAILS: Record<string, string> = {
 export default function ProductDetails({ product }: ProductDetailsProps) {
     // Parse data
     const images = JSON.parse(product.images);
-    const formats = JSON.parse(product.formats);
 
-    const [selectedFormat, setSelectedFormat] = useState(formats[0] || '');
+    // Parse formats safely handling legacy (string[]) and new ({format, price}[])
+    let parsedFormats: { format: string; price: number }[] = [];
+    try {
+        const rawFormats = JSON.parse(product.formats);
+        if (Array.isArray(rawFormats)) {
+            parsedFormats = rawFormats.map(f => {
+                if (typeof f === 'string') return { format: f, price: product.price }; // Legacy
+                return f; // New structure
+            });
+        }
+    } catch {
+        parsedFormats = [];
+    }
+
+    const [selectedFormat, setSelectedFormat] = useState(parsedFormats[0]?.format || '');
     const [activeImage, setActiveImage] = useState(images[0] || '/placeholder.jpg');
     const [isZoomed, setIsZoomed] = useState(false);
 
+    // Get price for selected format
+    const currentPrice = parsedFormats.find(f => f.format === selectedFormat)?.price || product.price;
+
     return (
         <div className="container mx-auto px-4 py-12 lg:py-20">
-            <Link href="/" className="inline-flex items-center text-sm font-light text-gray-400 hover:text-brand-blue mb-12 transition-colors uppercase tracking-widest">
+            <Link href="/" className="inline-flex items-center text-sm font-light text-gray-400 hover:text-black mb-12 transition-colors uppercase tracking-widest">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Volver a la galería
             </Link>
@@ -85,7 +101,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     <h1 className="text-4xl md:text-5xl font-serif text-gray-900 mb-6 leading-tight">{product.title}</h1>
 
                     <div className="flex items-baseline gap-4 mb-8">
-                        <p className="text-3xl font-light text-gray-900">{product.price.toFixed(2)} €</p>
+                        <p className="text-3xl font-light text-gray-900">{currentPrice.toFixed(2)} €</p>
                         <span className="text-xs text-brand-blue bg-brand-blue/5 px-2 py-1 rounded uppercase tracking-wider">IVA Incluido</span>
                     </div>
 
@@ -99,21 +115,24 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                         <div>
                             <label className="block text-xs uppercase tracking-widest text-gray-400 mb-4 font-semibold">Seleccionar Formato</label>
                             <div className="grid grid-cols-1 gap-3">
-                                {formats.map((format: string) => (
+                                {parsedFormats.map((item) => (
                                     <button
-                                        key={format}
-                                        onClick={() => setSelectedFormat(format)}
-                                        className={`flex items-center justify-between px-5 py-4 border rounded-xl transition-all duration-300 group ${selectedFormat === format
+                                        key={item.format}
+                                        onClick={() => setSelectedFormat(item.format)}
+                                        className={`flex items-center justify-between px-5 py-4 border rounded-xl transition-all duration-300 group ${selectedFormat === item.format
                                             ? 'border-brand-blue bg-brand-blue/5 text-brand-blue font-medium shadow-sm ring-1 ring-brand-blue'
                                             : 'border-gray-100 text-gray-500 hover:border-brand-blue/30 hover:bg-gray-50'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${selectedFormat === format ? 'border-brand-blue bg-brand-blue' : 'border-gray-300'}`}>
-                                                {selectedFormat === format && <Check className="w-2.5 h-2.5 text-white" />}
+                                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${selectedFormat === item.format ? 'border-brand-blue bg-brand-blue' : 'border-gray-300'}`}>
+                                                {selectedFormat === item.format && <Check className="w-2.5 h-2.5 text-white" />}
                                             </div>
-                                            <span>{FORMAT_DETAILS[format] || format}</span>
+                                            <span>{FORMAT_DETAILS[item.format] || item.format}</span>
                                         </div>
+                                        <span className={`text-sm ${selectedFormat === item.format ? 'text-brand-blue' : 'text-gray-400'}`}>
+                                            {item.price.toFixed(2)} €
+                                        </span>
                                     </button>
                                 ))}
                             </div>
@@ -121,7 +140,13 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     </div>
 
                     <div className="mt-auto space-y-6">
-                        <AddToCartButton product={product} selectedFormat={selectedFormat} />
+                        <AddToCartButton
+                            product={{
+                                ...product,
+                                price: currentPrice
+                            }}
+                            selectedFormat={selectedFormat}
+                        />
 
                         <div className="grid grid-cols-3 gap-4 text-center text-[10px] uppercase tracking-tighter text-gray-400 font-medium">
                             <div className="space-y-1">

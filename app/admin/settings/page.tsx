@@ -1,98 +1,66 @@
-'use client';
+'use server';
 
-import { useState } from 'react';
-import { changePassword } from '@/app/actions/auth';
-import { Loader2, Lock } from 'lucide-react';
+import { getGlobalSettings, updateHeroImage } from '@/app/actions/settings';
+// import { Button } from '@/components/ui/button'; // Assuming button exists or standard html button
+import { redirect } from 'next/navigation';
 
-export default function SettingsPage() {
-    const [message, setMessage] = useState('');
-    const [isSuccess, setIsSuccess] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+export default async function SettingsPage() {
+    // Check auth? Middleware handles /admin/* usually.
 
-    async function handleSubmit(formData: FormData) {
-        setIsLoading(true);
-        setMessage('');
-        setIsSuccess(false);
+    const settings = await getGlobalSettings();
+    const currentHeroImage = settings?.heroImage || '/uploads/hero-placeholder.jpg';
 
-        const result = await changePassword(null, formData);
-
-        if (result?.message) {
-            setMessage(result.message);
-            setIsSuccess(!!result.success);
-        }
-
-        if (result?.success) {
-            // Reset form
-            const form = document.getElementById('password-form') as HTMLFormElement;
-            form.reset();
-        }
-
-        setIsLoading(false);
+    async function handleUpdate(formData: FormData) {
+        'use server';
+        await updateHeroImage(formData);
+        redirect('/admin/settings');
     }
 
     return (
-        <div className="max-w-2xl mx-auto">
-            <h1 className="text-3xl font-serif font-light mb-8">Ajustes</h1>
+        <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl font-serif mb-8">Configuración Global</h1>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-brand-blue/10 rounded-lg">
-                        <Lock className="w-5 h-5 text-brand-blue" />
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8">
+                <h2 className="text-xl font-medium mb-6">Imagen de Portada (Hero)</h2>
+
+                <div className="mb-6">
+                    <p className="text-sm text-gray-500 mb-2">Imagen Actual:</p>
+                    <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+                        <img
+                            src={currentHeroImage}
+                            alt="Current Hero"
+                            className="w-full h-full object-cover"
+                        />
                     </div>
-                    <h2 className="text-xl font-medium">Cambiar Contraseña</h2>
                 </div>
 
-                <form id="password-form" action={handleSubmit} className="space-y-6">
-                    {message && (
-                        <div className={`p-4 rounded-lg text-sm ${isSuccess ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                            {message}
-                        </div>
-                    )}
-
+                <form action={handleUpdate} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Contraseña Actual
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Subir Nueva Imagen
                         </label>
                         <input
-                            name="currentPassword"
-                            type="password"
+                            type="file"
+                            name="heroImage"
+                            accept="image/*"
                             required
-                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+                            className="block w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-brand-blue/10 file:text-brand-blue
+                                hover:file:bg-brand-blue/20"
                         />
                     </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Nueva Contraseña
-                        </label>
-                        <input
-                            name="newPassword"
-                            type="password"
-                            required
-                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Confirmar Nueva Contraseña
-                        </label>
-                        <input
-                            name="confirmPassword"
-                            type="password"
-                            required
-                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
-                        />
-                    </div>
-
                     <button
                         type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-brand-blue text-white px-6 py-3 rounded-lg hover:bg-[#3A5F95] transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
+                        className="bg-brand-blue text-white px-6 py-2 rounded-lg hover:bg-[#3A5F95] transition-colors"
                     >
-                        {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                        Actualizar Contraseña
+                        Guardar Cambios
                     </button>
+                    <p className="text-xs text-gray-400 mt-2">
+                        * Se recomienda una imagen horizontal de alta calidad (min 1920x1080).
+                    </p>
                 </form>
             </div>
         </div>

@@ -10,9 +10,14 @@ const ProductSchema = z.object({
     price: z.coerce.number().min(0),
     width: z.coerce.number().optional(),
     height: z.coerce.number().optional(),
-    formats: z.union([z.string(), z.array(z.string())]).transform((val) =>
-        Array.isArray(val) ? val : val.split(',').map((s) => s.trim())
-    ),
+    // Formats is now a JSON string containing [{format: string, price: number}]
+    formats: z.string().transform((val) => {
+        try {
+            return JSON.parse(val);
+        } catch {
+            return [];
+        }
+    }),
     categoryId: z.coerce.number().optional(),
 });
 
@@ -25,12 +30,11 @@ export async function POST(request: Request) {
         const rawData = {
             title: formData.get('title'),
             description: formData.get('description'),
-            price: formData.get('price'),
+            // Price is derived from the lowest format price
+            price: 0, // Placeholder, will be calculated
             width: formData.get('width') || undefined,
             height: formData.get('height') || undefined,
-            formats: formData.getAll('formats').length > 1
-                ? formData.getAll('formats')
-                : formData.get('formats'),
+            formats: formData.get('formats'),
             categoryId: formData.get('categoryId') || undefined,
         };
         console.log('[API] Raw Data:', JSON.stringify(rawData));
@@ -70,12 +74,17 @@ export async function POST(request: Request) {
 
         const { title, description, price, width, height, formats, categoryId } = validatedFields.data;
 
+        // Calculate min price for display
+        const minPrice = Array.isArray(formats) && formats.length > 0
+            ? Math.min(...formats.map((f: any) => Number(f.price) || 0))
+            : 0;
+
         console.log('[API] Creating DB record...');
         await prisma.product.create({
             data: {
                 title,
                 description,
-                price,
+                price: minPrice,
                 width: width || 0,
                 height: height || 0,
                 formats: JSON.stringify(formats),

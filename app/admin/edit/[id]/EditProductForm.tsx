@@ -36,13 +36,23 @@ export default function EditProductForm({ product }: { product: SerializedProduc
     const [state, dispatch] = useActionState(updateProductWithId, initialState);
 
     // Parse existing formats to check boxes
-    let existingFormats: string[] = [];
-    try {
-        existingFormats = JSON.parse(product.formats);
-        if (!Array.isArray(existingFormats)) existingFormats = [product.formats];
-    } catch (e) {
-        existingFormats = [product.formats];
-    }
+    const [selectedFormats, setSelectedFormats] = useState<{ format: string; price: number }[]>([]);
+
+    useState(() => {
+        try {
+            const raw = JSON.parse(product.formats);
+            if (Array.isArray(raw)) {
+                // Check if legacy string[] or new object[]
+                const formatted = raw.map(f => {
+                    if (typeof f === 'string') return { format: f, price: product.price };
+                    return f;
+                });
+                setSelectedFormats(formatted);
+            }
+        } catch (e) {
+            setSelectedFormats([]);
+        }
+    });
 
     // Parse image for preview
     let existingImage = '/placeholder.jpg';
@@ -114,18 +124,7 @@ export default function EditProductForm({ product }: { product: SerializedProduc
                 {/* Price & Dimensions */}
                 <div className="grid grid-cols-3 gap-4">
                     <div>
-                        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                            Precio (€)
-                        </label>
-                        <input
-                            id="price"
-                            name="price"
-                            type="number"
-                            step="0.01"
-                            defaultValue={product.price}
-                            required
-                            className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
-                        />
+                        {/* Hidden price, calculated from variants */}
                     </div>
                     <div>
                         <label htmlFor="width" className="block text-sm font-medium text-gray-700 mb-1">
@@ -158,21 +157,55 @@ export default function EditProductForm({ product }: { product: SerializedProduc
                     <label className="block text-sm font-medium text-gray-700 mb-2">Formatos Disponibles</label>
                     <div className="space-y-2">
                         {[
-                            { id: 'A2', label: 'A2 (42 x 59.4 cm)' },
-                            { id: 'A3', label: 'A3 (29.7 x 42 cm)' },
                             { id: 'A4', label: 'A4 (21 x 29.7 cm)' },
-                        ].map((format) => (
-                            <label key={format.id} className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                <input
-                                    type="checkbox"
-                                    name="formats"
-                                    value={format.id}
-                                    defaultChecked={existingFormats.includes(format.id)}
-                                    className="w-4 h-4 text-brand-blue border-gray-300 rounded focus:ring-brand-blue"
-                                />
-                                <span className="text-sm text-gray-700">{format.label}</span>
-                            </label>
-                        ))}
+                            { id: 'A3', label: 'A3 (29.7 x 42 cm)' },
+                            { id: 'A2', label: 'A2 (42 x 59.4 cm)' },
+                        ].map((format) => {
+                            const isSelected = selectedFormats.some(f => f.format === format.id);
+                            const variant = selectedFormats.find(f => f.format === format.id);
+
+                            return (
+                                <div key={format.id} className={`flex items-center gap-4 p-3 border rounded-lg transition-colors ${isSelected ? 'border-brand-blue bg-brand-blue/5' : 'border-gray-100'}`}>
+                                    <label className="flex items-center gap-3 flex-1 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={isSelected}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedFormats([...selectedFormats, { format: format.id, price: product.price }]);
+                                                } else {
+                                                    setSelectedFormats(selectedFormats.filter(f => f.format !== format.id));
+                                                }
+                                            }}
+                                            className="w-4 h-4 text-brand-blue border-gray-300 rounded focus:ring-brand-blue"
+                                        />
+                                        <span className="text-sm text-gray-700">{format.label}</span>
+                                    </label>
+
+                                    {isSelected && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-gray-500">Price:</span>
+                                            <input
+                                                type="number"
+                                                value={variant?.price || ''}
+                                                onChange={(e) => {
+                                                    const newPrice = parseFloat(e.target.value);
+                                                    setSelectedFormats(selectedFormats.map(f =>
+                                                        f.format === format.id ? { ...f, price: newPrice } : f
+                                                    ));
+                                                }}
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                className="w-24 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-brand-blue"
+                                                required
+                                            />
+                                            <span className="text-sm text-gray-500">€</span>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        <input type="hidden" name="formats" value={JSON.stringify(selectedFormats)} />
                     </div>
                 </div>
 

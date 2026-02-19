@@ -13,9 +13,15 @@ const ProductSchema = z.object({
     height: z.coerce.number().optional(),
     // Checkboxes return multiple values in FormData if checked, handle later.
     // Or simpler: handle string comma separated or JSON.
-    formats: z.union([z.string(), z.array(z.string())]).transform((val) =>
-        Array.isArray(val) ? val : val.split(',').map((s) => s.trim())
-    ),
+    // Checkboxes return multiple values in FormData if checked, handle later.
+    // Or simpler: handle string comma separated or JSON.
+    formats: z.string().transform((val) => {
+        try {
+            return JSON.parse(val);
+        } catch {
+            return [];
+        }
+    }),
     categoryId: z.coerce.number().optional(),
 });
 
@@ -114,10 +120,15 @@ export async function updateProduct(id: number, prevState: any, formData: FormDa
 
         const { title, description, price, width, height, formats, categoryId } = validatedFields.data;
 
+        // Calculate min price
+        const minPrice = Array.isArray(formats) && formats.length > 0
+            ? Math.min(...formats.map((f: any) => Number(f.price) || 0))
+            : 0;
+
         const updateData: any = {
             title,
             description,
-            price,
+            price: minPrice,
             width: width || 0,
             height: height || 0,
             formats: JSON.stringify(formats),
