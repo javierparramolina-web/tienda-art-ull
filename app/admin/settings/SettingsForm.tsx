@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { updateSettingsWithUrl } from '@/app/actions/settings';
 import { upload } from '@vercel/blob/client';
