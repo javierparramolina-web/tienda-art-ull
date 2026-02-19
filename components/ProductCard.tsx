@@ -23,7 +23,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <div className="relative overflow-hidden rounded-lg bg-gray-100 aspect-[5/7]">
                 {/* Using standard img to avoid basePath issues with local uploads */}
                 <img
-                    src={imageUrl.startsWith('/') && !imageUrl.startsWith('/tienda') ? `/tienda${imageUrl}` : imageUrl}
+                    src={imageUrl}
                     alt={product.title}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />

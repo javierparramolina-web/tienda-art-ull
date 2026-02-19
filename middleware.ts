@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
         });
 
         if (!token) {
-            const url = new URL('/tienda/auth/signin', request.url);
+            const url = new URL('/auth/signin', request.url);
             url.searchParams.set('callbackUrl', request.url);
             return NextResponse.redirect(url);
         }

@@ -28,7 +28,7 @@ export default function NewProductForm({ categories }: NewProductFormProps) {
         startTransition(async () => {
             try {
                 // Must include basePath '/tienda' manually for fetch
-                const response = await fetch('/tienda/api/products', {
+                const response = await fetch('/api/products', {
                     method: 'POST',
                     body: formData,
                 });

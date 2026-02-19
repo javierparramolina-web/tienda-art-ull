@@ -186,9 +186,7 @@ export default function EditProductForm({ product }: { product: SerializedProduc
                                    Manually resolving basePath /tienda if needed. 
                                    Next.js Image should handle this but let's be explicit. */
                                 <img
-                                    src={imagePreview.startsWith('/') && !imagePreview.startsWith('/tienda')
-                                        ? `/tienda${imagePreview}`
-                                        : imagePreview}
+                                    src={imagePreview}
                                     alt="Preview"
                                     className="w-full h-full object-cover"
                                 />

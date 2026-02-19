@@ -28,7 +28,7 @@ function SuccessContent() {
                 // Scenario A: Stripe Return (has payment_intent)
                 if (paymentIntentId) {
                     // Confirm and create order if needed
-                    const confirmRes = await fetch('/tienda/api/orders/confirm', {
+                    const confirmRes = await fetch('/api/orders/confirm', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ paymentIntentId }),
@@ -51,7 +51,7 @@ function SuccessContent() {
                 }
 
                 // Fetch full order details
-                const orderRes = await fetch(`/tienda/api/orders/${idToFetch}`);
+                const orderRes = await fetch(`/api/orders/${idToFetch}`);
                 if (!orderRes.ok) throw new Error('Failed to fetch order details');
 
                 const orderData = await orderRes.json();

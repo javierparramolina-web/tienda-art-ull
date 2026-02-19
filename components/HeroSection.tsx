@@ -10,7 +10,7 @@ export function HeroSection() {
             <div className="absolute inset-0">
                 {!imageError ? (
                     <img
-                        src="/tienda/uploads/hero-placeholder.jpg"
+                        src="/uploads/hero-placeholder.jpg"
                         alt="Art Background"
                         className="w-full h-full object-cover opacity-60"
                         onError={() => setImageError(true)}

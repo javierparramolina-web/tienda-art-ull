@@ -26,7 +26,7 @@ export default function CheckoutPage() {
         if (items.length > 0) {
             // Create PaymentIntent as soon as the page loads
             // Must include basePath '/tienda'
-            fetch("/tienda/api/create-payment-intent", {
+            fetch("/api/create-payment-intent", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ items }),

@@ -51,7 +51,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     >
                         {/* Using standard img to avoid basePath issues with local uploads */}
                         <img
-                            src={activeImage.startsWith('/') && !activeImage.startsWith('/tienda') ? `/tienda${activeImage}` : activeImage}
+                            src={activeImage}
                             alt={product.title}
                             className={`w-full h-full object-cover transition-transform duration-700 ease-out ${isZoomed ? 'scale-110' : 'scale-100'}`}
                         />
@@ -67,7 +67,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                                     className={`relative flex-shrink-0 w-24 aspect-square rounded-xl overflow-hidden border-2 transition-all duration-300 ${activeImage === img ? 'border-brand-blue ring-4 ring-brand-blue/10' : 'border-transparent opacity-60 hover:opacity-100'}`}
                                 >
                                     <img
-                                        src={img.startsWith('/') && !img.startsWith('/tienda') ? `/tienda${img}` : img}
+                                        src={img}
                                         alt={`${product.title} - view ${idx + 1}`}
                                         className="w-full h-full object-cover"
                                     />

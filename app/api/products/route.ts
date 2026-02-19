@@ -61,7 +61,7 @@ export async function POST(request: Request) {
                 await mkdir(uploadDir, { recursive: true });
                 await writeFile(path.join(uploadDir, filename), buffer);
                 // Must include basePath '/tienda'
-                imagePath = `/tienda/uploads/${filename}`;
+                imagePath = `/uploads/${filename}`;
             } catch (error) {
                 console.error('[API] Error saving file:', error);
                 return NextResponse.json(

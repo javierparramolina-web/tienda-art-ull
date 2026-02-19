@@ -50,7 +50,7 @@ export default function CheckoutForm({ amount }: { amount: number }) {
 
         if (paymentMethod === 'bizum') {
             try {
-                const response = await fetch('/tienda/api/orders/bizum', {
+                const response = await fetch('/api/orders/bizum', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

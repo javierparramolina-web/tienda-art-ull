@@ -15,7 +15,7 @@ async function main() {
 
         const newImages = images.map(img => {
             if (img.startsWith('/uploads/') && !img.startsWith('/tienda/')) {
-                return '/tienda' + img;
+                return img;
             }
             return img;
         });

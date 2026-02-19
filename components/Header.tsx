@@ -8,7 +8,7 @@ export default function Header() {
                 <Link href="/" className="flex items-center gap-2">
                     <div className="relative w-12 h-8 md:w-16 md:h-10">
                         <img
-                            src="/tienda/artull-logo.png"
+                            src="/artull-logo.png"
                             alt="Art-ULL Logo"
                             className="object-contain w-full h-full"
                         />

@@ -63,7 +63,7 @@ export default function CartSheet() {
                                     <div className="relative w-20 h-20 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
                                         {/* Using standard img for cart items to avoid path issues */}
                                         <img
-                                            src={item.image.startsWith('/') && !item.image.startsWith('/tienda') ? `/tienda${item.image}` : item.image}
+                                            src={item.image}
                                             alt={item.title}
                                             className="w-full h-full object-cover"
                                         />
