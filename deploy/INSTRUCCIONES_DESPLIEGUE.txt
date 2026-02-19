@@ -1,0 +1,43 @@
+GUÍA DE DESPLIEGUE ART-Ull (Modo Sin Terminal)
+
+¡Enhorabuena! Tienes tu tienda lista para subir.
+Esta versión NO REQUIERE TERMINAL. Solo subir y configurar.
+
+CONTENIDO DE ESTA CARPETA:
+1. server.js: El servidor web
+2. .next/: La aplicación compilada
+3. node_modules: Librerías necesarias (ya incluidas)
+4. prod.db: Base de datos lista para usar 
+5. ...otros archivos de soporte
+
+PASOS PARA DESPLEGAR:
+
+1. SUBIR
+   Sube todo el contenido de esta carpeta al servidor (por ejemplo con FileZilla) a la carpeta donde quieras tu web.
+
+2. CONFIGURAR VARIABLES DE ENTORNO
+   Crea un archivo llamado `.env` en esa misma carpeta (junto a server.js) con este contenido:
+
+   DATABASE_URL="file:./prod.db"    <-- IMPORTANTE: Apunta al archivo que acabamos de crear
+   NEXTAUTH_URL="https://tu-dominio.com/tienda" 
+   NEXTAUTH_SECRET="...tu secreto largo..."
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_live_..."
+   STRIPE_SECRET_KEY="sk_live_..."
+   EMAIL_USER="resend"
+   EMAIL_PASS="re_..."
+   EMAIL_FROM="onboarding@resend.dev"
+
+3. DATABASE (¡Ya está hecha!)
+   Como no tienes terminal, he creado el archivo `prod.db` (base de datos vacía) por ti. 
+   Al subirlo, ya estará lista para recibir pedidos.
+
+4. ARRANCAR
+   Si tu hosting tiene panel (cPanel, Plesk, etc):
+   - Ve a la sección de Node.js.
+   - Selecciona la carpeta donde subiste esto.
+   - El archivo de arranque es `server.js`.
+   - Dale al botón "Start App" o "Restart".
+
+   Si usas otro método para arrancar tu otra web de node, haz lo mismo con esta.
+
+¡Suerte con las ventas! 🚀

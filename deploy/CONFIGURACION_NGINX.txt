@@ -1,0 +1,27 @@
+## 1. CAMBIAR PUERTO (IMPORTANTE)
+Como dijiste que ya tienes otra web Node.js, es probable que el puerto 3000 esté ocupado.
+Abre el archivo `.env` y añade una línea al final con otro puerto (ej: 3001 o 3002):
+
+PORT=3001
+
+## 2. CONFIGURACIÓN NGINX
+El error 403 Forbidden significa que Nginx está intentando leer los archivos en vez de pasárselos a la App.
+Tienes que editar la configuración de tu sitio Nginx (suele estar en `/etc/nginx/sites-available/tudominio`) y añadir o modificar esto:
+
+location /tienda {
+    # IMPORTANTE: Asegúrate de que el puerto (3001) coincide con el del .env
+    proxy_pass http://localhost:3001; 
+    
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+    
+    # Para que Next.js sepa que está en una subcarpeta
+    proxy_set_header X-Forwarded-Prefix /tienda;
+}
+
+## 3. REINICIAR
+1. Reinicia tu app Node.js (con las nuevas variables de entorno).
+2. Reinicia Nginx: `sudo service nginx restart`

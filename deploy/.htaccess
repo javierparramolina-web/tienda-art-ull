@@ -1,0 +1,15 @@
+DirectoryIndex app.js
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^$ app.js [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ app.js/$1 [L]
+</IfModule>
+
+<IfModule mod_passenger.c>
+    PassengerAppRoot %{DOCUMENT_ROOT}
+    PassengerAppType node
+    PassengerStartupFile app.js
+</IfModule>

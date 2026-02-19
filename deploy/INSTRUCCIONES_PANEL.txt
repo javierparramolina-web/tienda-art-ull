@@ -1,0 +1,33 @@
+GUÍA FINAL (Usando tu Panel de Hosting)
+
+El error 403 es normal: has subido los archivos pero la App está "apagada".
+Como no tienes terminal, tienes que usar el mismo panel donde gestionas tu otra web Node.js.
+
+PASOS:
+
+1. SUBIR TODO (Carpeta deploy)
+   Sube el contenido de la carpeta `deploy` a tu servidor.
+
+2. CONFIGURAR EL ARRANQUE (En tu Panel de Hosting)
+   Busca la opción donde configuraste tu otra web (tipo "Node.js Apps", "Application Manager", etc).
+   Crea una NUEVA APLICACIÓN para la tienda:
+   
+   - **Application Root**: La carpeta donde has subido esto.
+   - **Application URL**: `art-ull.es/tienda` (o la que te deje poner).
+   - **Application Startup File**: `server.js` (IMPORTANTE).
+   - **Port**: Si te deja elegir, pon `3001` (ya que el 3000 estará ocupado). Si no te deja, el panel te asignará uno solo.
+
+3.VARIABLES DE ENTORNO
+   En ese mismo panel, busca una sección de "Environment Variables" o ".env".
+   
+   Si te deja pegar texto, pega el contenido del archivo `.env` que subiste.
+   Si tienes que añadirlas una a una, añade estas dos IMPORTANTISIMAS:
+   
+   - `DATABASE_URL` -> `file:./prod.db`
+   - `NEXTAUTH_URL` -> `https://art-ull.es/tienda`
+
+4. ARRANCAR
+   Dale al botón "Start" o "Restart" en el panel.
+
+Una vez esté "Running" (verde), el error 403 desaparecerá y saldrá la tienda.
+No necesitas tocar Nginx a mano si usas el panel, él lo hace por ti.
