@@ -13,22 +13,32 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials, req) {
-                if (!credentials?.username || !credentials.password) return null;
+                try {
+                    if (!credentials?.username || !credentials.password) return null;
 
-                const user = await prisma.user.findUnique({
-                    where: { username: credentials.username }
-                });
+                    const user = await prisma.user.findUnique({
+                        where: { username: credentials.username }
+                    });
 
-                if (!user) return null;
+                    if (!user) {
+                        console.log("User not found:", credentials.username);
+                        return null;
+                    }
 
-                // Dynamic import for bcrypt to avoid build issues if not used elsewhere on edge
-                const bcrypt = await import('bcryptjs');
-                const isValid = await bcrypt.compare(credentials.password, user.password);
+                    // Dynamic import for bcrypt to avoid build issues if not used elsewhere on edge
+                    const bcrypt = await import('bcryptjs');
+                    const isValid = await bcrypt.compare(credentials.password, user.password);
 
-                if (isValid) {
-                    return { id: user.id, name: user.username, email: "admin@art-ull.es" };
+                    if (isValid) {
+                        return { id: user.id, name: user.username, email: "admin@art-ull.es" };
+                    } else {
+                        console.log("Invalid password for user:", credentials.username);
+                    }
+                    return null;
+                } catch (error) {
+                    console.error("Auth Error:", error);
+                    return null;
                 }
-                return null;
             },
         }),
     ],
