@@ -18,7 +18,7 @@ import { useFormStatus } from 'react-dom'; // Still commonly in react-dom in ear
 // Safest bet for 19: `import { useActionState } from "react"`. `import { useFormStatus } from "react-dom"`.
 // If `useFormStatus` warns, we deal with it.
 
-import { Product } from '@prisma/client';
+import { Product, Category } from '@prisma/client';
 import { Loader2, ArrowLeft, Upload, ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -30,7 +30,7 @@ interface SerializedProduct extends Omit<Product, 'createdAt' | 'updatedAt'> {
     updatedAt: string;
 }
 
-export default function EditProductForm({ product }: { product: SerializedProduct }) {
+export default function EditProductForm({ product, categories = [] }: { product: SerializedProduct, categories?: Category[] }) {
     // Wrap the update action to pass the ID
     const updateProductWithId = updateProduct.bind(null, product.id);
     const [state, dispatch] = useActionState(updateProductWithId, initialState);
@@ -101,6 +101,26 @@ export default function EditProductForm({ product }: { product: SerializedProduc
                     {state.errors?.title && (
                         <p className="mt-1 text-sm text-red-500">{state.errors.title}</p>
                     )}
+                </div>
+
+                {/* Category */}
+                <div>
+                    <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-1">
+                        Categoría
+                    </label>
+                    <select
+                        id="categoryId"
+                        name="categoryId"
+                        defaultValue={product.categoryId || ''}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black/5 bg-white transition-all"
+                    >
+                        <option value="">Sin Categoría</option>
+                        {categories.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                                {cat.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 {/* Description */}

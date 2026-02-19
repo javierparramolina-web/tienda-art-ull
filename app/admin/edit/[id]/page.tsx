@@ -22,14 +22,16 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         ...product,
         createdAt: product.createdAt.toISOString(),
         updatedAt: product.updatedAt.toISOString(),
-        price: product.price, // Ensure price is number not Decimal if schema changed, but schema says Float so it's fine.
+        price: product.price,
     };
 
-
+    const categories = await prisma.category.findMany({
+        orderBy: { name: 'asc' },
+    });
 
     return (
         <div className="container mx-auto max-w-4xl">
-            <EditProductForm product={serializedProduct} />
+            <EditProductForm product={serializedProduct} categories={categories} />
         </div>
     );
 }
