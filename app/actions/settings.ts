@@ -22,7 +22,15 @@ export async function updateHeroImage(formData: FormData) {
         }
 
         const { uploadImage } = await import('@/lib/upload');
-        const imageUrl = await uploadImage(file);
+        let imageUrl;
+        try {
+            imageUrl = await uploadImage(file);
+        } catch (e: any) {
+            if (e.message?.includes('BLOB_READ_WRITE_TOKEN')) {
+                return { message: 'Error: Configuración incompleta. Falta el token de Vercel Blob.' };
+            }
+            throw e;
+        }
 
         if (!imageUrl) {
             return { message: 'Failed to upload image.' };
@@ -60,7 +68,14 @@ export async function updateAboutSettings(formData: FormData) {
         let imageUrl = undefined;
         if (file && file.size > 0) {
             const { uploadImage } = await import('@/lib/upload');
-            imageUrl = await uploadImage(file);
+            try {
+                imageUrl = await uploadImage(file);
+            } catch (e: any) {
+                if (e.message?.includes('BLOB_READ_WRITE_TOKEN')) {
+                    return { message: 'Error: Falta configurar el almacenamiento (Vercel Blob).' };
+                }
+                throw e;
+            }
         }
 
         const existing = await prisma.globalSettings.findFirst();
