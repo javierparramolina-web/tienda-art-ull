@@ -5,7 +5,7 @@ import { Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { HeroSection } from '@/components/HeroSection'; // Just to resolve any path issues? No, not used here.
+
 
 export default function CartPage() {
     const { items, removeItem, updateQuantity, getTotal } = useCartStore();
