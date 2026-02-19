@@ -1,5 +1,5 @@
 import { MasonryGrid } from "@/components/MasonryGrid";
-import { HeroSection } from "@/components/HeroSection";
+import HeroSection from "@/components/HeroSection";
 import prisma from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic'; // For SQLite in dev to reflect changes
