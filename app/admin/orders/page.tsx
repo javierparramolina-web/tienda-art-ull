@@ -98,11 +98,15 @@ export default async function AdminOrdersPage() {
                                                 </button>
                                             </form>
                                         </td>
-                                        {/* <td className="px-6 py-4 text-right">
-                                            <button className="text-gray-400 hover:text-brand-blue transition-colors">
+                                        <td className="px-6 py-4 text-right">
+                                            <Link
+                                                href={`/admin/orders/${order.id}`}
+                                                className="text-gray-400 hover:text-brand-blue transition-colors flex justify-end"
+                                                title="Ver Detalles Completos"
+                                            >
                                                 <Eye className="w-4 h-4" />
-                                            </button>
-                                        </td> */}
+                                            </Link>
+                                        </td>
                                     </tr>
                                 ))
                             )}

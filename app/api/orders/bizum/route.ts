@@ -46,7 +46,17 @@ export async function POST(request: Request) {
 
         // Send Emails (Soft Fail)
         try {
-            await sendBizumOrderEmails(order.id, email, itemsList, total);
+            await sendBizumOrderEmails({
+                orderId: order.id,
+                customerEmail: email,
+                customerName,
+                address,
+                city,
+                zipCode,
+                phone,
+                items: itemsList,
+                total
+            });
         } catch (emailError) {
             console.error('Failed to send emails:', emailError);
             // We continue even if email fails, so we don't lose the order

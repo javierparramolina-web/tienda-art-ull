@@ -12,15 +12,23 @@ export const transporter = nodemailer.createTransport({
     },
 });
 
-export const sendOrderEmails = async (orderId: string, customerEmail: string, items: string, total: number) => {
-    // For Resend testing, we must send FROM the onboarding address
-    // and TO the verified email (usually the owner's email during dev)
-    const sender = process.env.EMAIL_FROM || 'onboarding@resend.dev';
 
-    // In production (verified domain), we can send to customerEmail.
-    // In dev (onboarding), we can ONLY send to ourselves.
-    // We'll try to send to customer, but catch if it fails.
-    const ownerEmail = 'javierparra.artull@gmail.com'; // Hardcoded for safety as fallback
+interface OrderDetails {
+    orderId: string;
+    customerEmail: string;
+    customerName?: string;
+    address?: string;
+    city?: string;
+    zipCode?: string;
+    phone?: string;
+    items: string;
+    total: number;
+}
+
+export const sendOrderEmails = async (details: OrderDetails) => {
+    const { orderId, customerEmail, customerName, address, city, zipCode, phone, items, total } = details;
+    const sender = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+    const ownerEmail = 'javierparra.artull@gmail.com';
 
     // Email to Owner
     await transporter.sendMail({
@@ -32,14 +40,20 @@ export const sendOrderEmails = async (orderId: string, customerEmail: string, it
             <p>Has recibido un nuevo pedido.</p>
             <p><strong>ID:</strong> ${orderId}</p>
             <p><strong>Total:</strong> ${total}€</p>
-            <p><strong>Cliente:</strong> ${customerEmail}</p>
+            <hr />
+            <h3>Datos del Cliente:</h3>
+            <p><strong>Nombre:</strong> ${customerName || 'N/A'}</p>
+            <p><strong>Email:</strong> ${customerEmail}</p>
+            <p><strong>Teléfono:</strong> ${phone || 'N/A'}</p>
+            <p><strong>Dirección:</strong><br/>
+            ${address || ''}<br/>
+            ${city || ''} ${zipCode || ''}</p>
+            <hr />
             <h3>Artículos:</h3>
             <pre>${items}</pre>
         `,
     });
 
-    // Email to Customer (Only works if customerEmail is verified or same as owner in Resend Sandbox)
-    // We try to send it, but if it fails (likely), we just log it.
     try {
         await transporter.sendMail({
             from: `"Art-ULL" <${sender}>`,
@@ -50,6 +64,12 @@ export const sendOrderEmails = async (orderId: string, customerEmail: string, it
                 <p>Hemos recibido tu pedido correctamente.</p>
                 <p><strong>ID de Pedido:</strong> ${orderId}</p>
                 <hr />
+                <h3>Datos de Envío:</h3>
+                <p><strong>Nombre:</strong> ${customerName || ''}</p>
+                <p><strong>Dirección:</strong><br/>
+                ${address || ''}<br/>
+                ${city || ''} ${zipCode || ''}</p>
+                <hr />
                 <h3>Resumen:</h3>
                 <pre>${items}</pre>
                 <p><strong>Total:</strong> ${total}€</p>
@@ -59,11 +79,12 @@ export const sendOrderEmails = async (orderId: string, customerEmail: string, it
             `,
         });
     } catch (e) {
-        console.warn('Could not send email to customer (Resend Sandbox Restriction?):', e);
+        console.warn('Could not send email to customer:', e);
     }
 };
 
-export const sendBizumOrderEmails = async (orderId: string, customerEmail: string, items: string, total: number) => {
+export const sendBizumOrderEmails = async (details: OrderDetails) => {
+    const { orderId, customerEmail, customerName, address, city, zipCode, phone, items, total } = details;
     const sender = process.env.EMAIL_FROM || 'onboarding@resend.dev';
     const ownerEmail = 'javierparra.artull@gmail.com';
 
@@ -77,7 +98,15 @@ export const sendBizumOrderEmails = async (orderId: string, customerEmail: strin
             <p>Un cliente quiere pagar por Bizum/Transferencia.</p>
             <p><strong>ID:</strong> ${orderId}</p>
             <p><strong>Total:</strong> ${total}€</p>
-            <p><strong>Cliente:</strong> ${customerEmail}</p>
+            <hr />
+            <h3>Datos del Cliente:</h3>
+            <p><strong>Nombre:</strong> ${customerName || 'N/A'}</p>
+            <p><strong>Email:</strong> ${customerEmail}</p>
+            <p><strong>Teléfono:</strong> ${phone || 'N/A'}</p>
+            <p><strong>Dirección:</strong><br/>
+            ${address || ''}<br/>
+            ${city || ''} ${zipCode || ''}</p>
+            <hr />
             <h3>Artículos:</h3>
             <pre>${items}</pre>
             <hr />
@@ -98,7 +127,7 @@ export const sendBizumOrderEmails = async (orderId: string, customerEmail: strin
                 <p><strong>Total a Pagar:</strong> ${total}€</p>
                 <hr />
                 <h3>Siguientes Pasos:</h3>
-                <p>En breve recibirás un mensaje de Javier Parra (propietario) con el número de teléfono o cuenta bancaria para realizar el ingreso.</p>
+                <p>En breve recibirás un mensaje de Javier Parra con el número de teléfono o cuenta bancaria para realizar el ingreso.</p>
                 <p>Tu pedido quedará reservado hasta que se confirme el pago.</p>
                 <hr />
                 <h3>Resumen:</h3>
@@ -108,6 +137,6 @@ export const sendBizumOrderEmails = async (orderId: string, customerEmail: strin
             `,
         });
     } catch (e) {
-        console.warn('Could not send email to customer (Resend Sandbox Restriction?):', e);
+        console.warn('Could not send email to customer:', e);
     }
 };

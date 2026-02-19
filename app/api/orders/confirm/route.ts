@@ -66,8 +66,18 @@ export async function POST(request: Request) {
         });
 
         // 4. Send Emails (Non-blocking)
-        sendOrderEmails(order.id, customerEmail, summary, order.total)
-            .catch(console.error); // Log email errors but don't fail the request
+        // 4. Send Emails (Non-blocking)
+        sendOrderEmails({
+            orderId: order.id,
+            customerEmail,
+            customerName: customerName || undefined,
+            address: addressLine || undefined,
+            city: city || undefined,
+            zipCode: zipCode || undefined,
+            phone: phone || undefined,
+            items: summary,
+            total: order.total
+        }).catch(console.error);
 
         return NextResponse.json({ success: true, orderId: order.id });
 
