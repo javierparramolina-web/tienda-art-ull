@@ -39,7 +39,7 @@ export default async function HeroSection() {
                         href="/about"
                         className="bg-white/80 backdrop-blur-sm text-gray-900 px-8 py-4 rounded-full font-medium text-lg hover:bg-white transition-all duration-300 border border-white/50 shadow-sm hover:shadow-md"
                     >
-                        Sobre la Artista
+                        Acerca de mí
                     </Link>
                 </div>
             </div>

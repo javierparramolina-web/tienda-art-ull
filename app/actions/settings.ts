@@ -50,3 +50,44 @@ export async function updateHeroImage(formData: FormData) {
         return { message: 'Error updating settings.' };
     }
 }
+
+export async function updateAboutSettings(formData: FormData) {
+    try {
+        const title = formData.get('aboutTitle') as string;
+        const description = formData.get('aboutDescription') as string;
+        const file = formData.get('aboutImage') as File;
+
+        let imageUrl = undefined;
+        if (file && file.size > 0) {
+            const { uploadImage } = await import('@/lib/upload');
+            imageUrl = await uploadImage(file);
+        }
+
+        const existing = await prisma.globalSettings.findFirst();
+
+        if (existing) {
+            await prisma.globalSettings.update({
+                where: { id: existing.id },
+                data: {
+                    aboutTitle: title,
+                    aboutDescription: description,
+                    ...(imageUrl && { aboutImage: imageUrl }),
+                },
+            });
+        } else {
+            await prisma.globalSettings.create({
+                data: {
+                    aboutTitle: title,
+                    aboutDescription: description,
+                    aboutImage: imageUrl,
+                },
+            });
+        }
+
+        revalidatePath('/about');
+        return { success: true, message: 'About page updated successfully!' };
+    } catch (error) {
+        console.error('Failed to update about settings:', error);
+        return { message: 'Error updating about settings.' };
+    }
+}

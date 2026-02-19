@@ -52,7 +52,10 @@ model User {
 }
 
 model GlobalSettings {
-  id        Int      @id @default(autoincrement())
-  heroImage String?
-  updatedAt DateTime @updatedAt
+  id               Int      @id @default(autoincrement())
+  heroImage        String?
+  aboutTitle       String?  @default("Sobre la Artista")
+  aboutDescription String?  @default("Hola, soy Javier...")
+  aboutImage       String?
+  updatedAt        DateTime @updatedAt
 }
