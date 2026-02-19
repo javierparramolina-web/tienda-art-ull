@@ -53,17 +53,14 @@ export async function POST(request: Request) {
 
         if (file && file.size > 0) {
             try {
-                const buffer = Buffer.from(await file.arrayBuffer());
-                const filename = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-                const uploadDir = path.join(process.cwd(), 'public/uploads');
-                console.log('[API] Saving image to:', path.join(uploadDir, filename));
-
-                await mkdir(uploadDir, { recursive: true });
-                await writeFile(path.join(uploadDir, filename), buffer);
-                // Must include basePath '/tienda'
-                imagePath = `/uploads/${filename}`;
+                // Use shared helper for Vercel Blob support
+                const { uploadImage } = await import('@/lib/upload');
+                const uploadedUrl = await uploadImage(file);
+                if (uploadedUrl) {
+                    imagePath = uploadedUrl;
+                }
             } catch (error) {
-                console.error('[API] Error saving file:', error);
+                console.error('[API] Error saving file to Blob:', error);
                 return NextResponse.json(
                     { message: 'Failed to save image: ' + (error as Error).message },
                     { status: 500 }
