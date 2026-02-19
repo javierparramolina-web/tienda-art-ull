@@ -1,8 +1,7 @@
-'use client';
-
 import { useActionState, useState } from 'react';
 import { updateHeroImage, updateAboutSettings, updateSettingsWithUrl } from '@/app/actions/settings';
 import { upload } from '@vercel/blob/client';
+import { compressImage } from '@/lib/client-image-compression';
 
 const initialState = {
     message: '',
@@ -34,8 +33,10 @@ export function SettingsForm({
             let finalUrl = currentHeroImage;
 
             if (file && file.size > 0) {
-                // Client-side upload
-                const newBlob = await upload(file.name, file, {
+                // Compress image before upload (Client-side)
+                const compressedFile = await compressImage(file, 1920, 0.8);
+
+                const newBlob = await upload(compressedFile.name, compressedFile, {
                     access: 'public',
                     handleUploadUrl: '/api/upload',
                 });
@@ -68,7 +69,8 @@ export function SettingsForm({
             let imageUrl = aboutSettings?.image;
 
             if (file && file.size > 0) {
-                const newBlob = await upload(file.name, file, {
+                const compressedFile = await compressImage(file, 800, 0.8); // Smaller storage for profile pics
+                const newBlob = await upload(compressedFile.name, compressedFile, {
                     access: 'public',
                     handleUploadUrl: '/api/upload',
                 });
@@ -146,8 +148,8 @@ export function SettingsForm({
                         ) : 'Guardar Cambios'}
                     </button>
                     <p className="text-xs text-gray-400 mt-2">
-                        * Se recomienda una imagen horizontal de alta calidad (min 1920x1080).
-                        Soporta archivos grandes ({'>'}5MB).
+                        * Se recomienda una imagen horizontal de alta calidad.
+                        La imagen se optimizará automáticamente al subirla.
                     </p>
                 </form>
             </div>
