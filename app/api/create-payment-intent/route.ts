@@ -20,8 +20,10 @@ export async function POST(request: Request) {
         const metadataItems = [];
 
         for (const item of items) {
+            // Use item.productId if available, otherwise parse item.id
+            const productId = item.productId ? Number(item.productId) : parseInt(item.id);
             const product = await prisma.product.findUnique({
-                where: { id: parseInt(item.id) }
+                where: { id: productId }
             });
 
             if (!product) {
@@ -29,12 +31,34 @@ export async function POST(request: Request) {
                 continue;
             }
 
-            // Simple calculation: Price * Quantity
-            // In a real app we might handle different formats/prices logic if complex
-            // schema implies 'price' is a single float.
-            total += product.price * item.quantity;
+            // Calculate price based on format
+            let itemPrice = product.price;
 
-            metadataItems.push(`${product.title} (x${item.quantity})`);
+            if (product.formats && item.format) {
+                try {
+                    const parsedFormats = JSON.parse(product.formats);
+                    if (Array.isArray(parsedFormats)) {
+                        const matchedFormat = parsedFormats.find(f => {
+                            if (typeof f === 'string') return f === item.format;
+                            return f.format === item.format;
+                        });
+
+                        if (matchedFormat) {
+                            if (typeof matchedFormat === 'string') {
+                                itemPrice = product.price; // Legacy
+                            } else {
+                                itemPrice = matchedFormat.price;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error parsing formats", e);
+                }
+            }
+
+            total += itemPrice * item.quantity;
+
+            metadataItems.push(`${product.title} [${item.format}] (x${item.quantity})`);
         }
 
         // Create PaymentIntent
